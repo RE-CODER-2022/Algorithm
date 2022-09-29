@@ -1,0 +1,74 @@
+//풀이1
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+vector<int> solution(vector<string> enroll, vector<string> referral, vector<string> seller, vector<int> amount) {
+    vector<int> answer(enroll.size());
+    string Seller;
+    string Recommender;
+    int money = 0;
+    int give = 0;
+    int cycle = 0;
+    int SellerIndex = 0;
+    int RecommenderIndex = 0;
+    for (cycle = 0; cycle < seller.size(); cycle++) {
+        Seller = seller[cycle];
+        money = amount[cycle] * 100;
+        SellerIndex = find(enroll.begin(), enroll.end(), Seller) - enroll.begin();
+        Recommender = referral[SellerIndex];
+        RecommenderIndex = find(enroll.begin(), enroll.end(), Recommender) - enroll.begin();
+        while (Recommender != "-") {
+            if (money / 10 < 1) break;
+            give = money / 10;
+            answer[SellerIndex] += money - give;
+            money = give;
+            Seller = Recommender;
+            SellerIndex = find(enroll.begin(), enroll.end(), Seller) - enroll.begin();
+            Recommender = referral[SellerIndex];
+            RecommenderIndex = find(enroll.begin(), enroll.end(), Recommender) - enroll.begin();
+        }
+        give = money / 10;
+        answer[SellerIndex] += money - give;
+    }
+    return answer;
+}
+
+
+//풀이2
+#include <string>
+#include <vector>
+#include <map>
+
+using namespace std;
+
+map<string, string> parent;
+map<string, int> gain;
+
+void update_gain(string now, int sell_gain) {
+    if (now == "-")return;
+    int delivery = sell_gain * 0.1;
+    gain[now] += sell_gain - delivery;
+    if (delivery == 0)return;
+    update_gain(parent[now], delivery);
+}
+
+vector<int> solution(vector<string> enroll, vector<string> referral, vector<string> seller, vector<int> amount) {
+    vector<int> answer;
+
+    for (int i = 0; i < enroll.size(); i++) {
+        parent[enroll[i]] = referral[i];
+    }
+
+    for (int i = 0; i < seller.size(); i++) {
+        update_gain(seller[i], amount[i] * 100);
+    }
+
+    for (int i = 0; i < enroll.size(); i++) {
+        answer.push_back(gain[enroll[i]]);
+    }
+
+    return answer;
+}
